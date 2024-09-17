@@ -8,4 +8,4 @@ A few things to note before starting:
 
 - You can navigate around the website via the navbar.
 
-
+- The code as a whole is still not finished due to deadline issues. Further changes of improvement will be made in the future.
