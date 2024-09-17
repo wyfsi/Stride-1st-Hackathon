@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stride Planner</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100;400&display=swap" rel="stylesheet">
+    <!-- Prob use a diff font for taskbar -->
+    <style>
+        body {
+            font-family: 'Raleway', sans-serif;
+            background: linear-gradient(to right, #d5f0c6, #b7dffb);
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .title { /* Center navbar title */
+            position: fixed;
+            top: -13px;
+            align-self: center;
+            z-index: 10000;
+        }
+
+        .title a { /* Center navbar title link */
+            font-weight: 350;
+            letter-spacing: 0.1em;
+            color: #333;
+            text-transform: uppercase;
+            text-decoration: none;
+        }
+
+        .navbar { /* Navbar Body */ 
+            position: fixed; 
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000; 
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 13px 0px 13px 0px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .navbar ul { 
+            list-style-type: none;
+            display: flex;
+            margin: 0;
+            padding: 0;
+            position: relative;
+        }
+
+        .navbar ul li { 
+            margin: 0 15px;
+            position: relative;
+        }
+
+        .navbar ul li a { 
+            text-decoration: none;
+            color: #333;
+            font-size: 1.2em;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .navbar ul li a::after { 
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: #888;
+            visibility: hidden;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .navbar ul li a:hover::after { 
+            visibility: visible;
+            transform: scaleX(1);
+        }
+
+        .navbar ul li .dropdown { 
+            visibility: hidden;
+            position: absolute;
+            top: 105%;
+            left: 0;
+            background-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            min-width: 150px;
+            z-index:1000 ;
+            border-radius: 5px;
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            transform: translateY(-10px); 
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .navbar ul li:hover .dropdown { 
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .dropdown a { 
+            color: #333;
+            padding: 10px 20px;
+            display: block;
+            text-decoration: none;
+            border-radius: 5px;
+            opacity: 0;
+            transform: translateX(0px); 
+        }
+
+        .navbar ul li:hover .dropdown a { 
+            opacity: 1;
+            transform: translateX(10); 
+            transition-delay: 0.1s;
+        }
+
+        .dropdown a:hover { 
+            background-color: rgba(51, 51, 51, 0.2);
+            transform: translateX(10px);
+            transition-delay: 0.1s;
+            color: #fff;
+        }
+
+        .planner {
+            display: block;
+            margin: 30px;
+            flex: 1;
+            position: relative;
+            
+        }
+
+        .sub-container {
+            line-height: 0.5;
+            padding: 10px;
+        }
+
+        .sub-title {
+            font-weight: 500;
+            text-align: center;
+            color: rgba(51, 51, 51, 0.8);
+        }
+
+        .date {
+            font-weight: 400;
+            text-align: center;
+            color: rgba(51, 51, 51, 0.8);
+        }
+
+        /* Tasks Section */
+        .tasks {
+            display: contents;
+            flex: 1;
+            margin-right: 20px;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .tasks h2 {
+            margin-bottom: 10px;
+        }
+
+        .section-header { /* Task Container */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+            cursor: pointer;
+        }
+        .section-header i {
+            margin-right: 8px;
+        }
+
+        .task-item input[type="checkbox"] {
+            margin-right: 15px;
+        }
+        .task-item .task-label {
+            flex-grow: 1;
+            text-align: left;
+        }
+
+        ul .highlight {
+            border: 2px solid rgb(90, 90, 90); /* Make highlight more appealing */
+        }
+
+        .mark-all, .clear-all {
+            padding: 5px 10px;
+            background-color: #888;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .mark-all:hover, .clear-all:hover {
+            background-color: #555;
+        }
+
+        .tasks ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .tasks ul li {
+            background-color: rgba(51, 51, 51, 0.1);
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+
+        .tasks ul li:hover {
+            background-color: rgba(51, 51, 51, 0.2);
+            scale: 1.04;
+        }
+
+        .tasks button {
+            background-color: rgba(51, 51, 51, 0.8);
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .tasks button:hover {
+            background-color: rgba(51, 51, 51, 1);
+        }
+
+        /* Add Tasks */
+        .add-task-bar {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .add-task-bar input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            outline: none;
+            margin-right: 8px;
+        }
+
+        .add-task-bar input[type="text"]::placeholder {
+            color: #aaa;
+        }
+
+        .add-task-bar .add-icon {
+            font-size: 24px;
+            color: #515151;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        /* Edit Tasks */
+        .edit-sidebar {
+            position: fixed;
+            top: 50px;
+            right: -345px;
+            width: 300px;
+            height: calc(100vh - 60px);
+            background: rgba(51, 51, 51, 0.6); /* Consolidated color */
+            backdrop-filter: blur(5px);
+            padding: 20px;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
+            transition: right 0.4s ease-in-out;
+            z-index: 999;
+        }
+
+        .edit-sidebar.open {
+            right: 0;
+        }
+
+        .edit-title {
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .edit-title i {
+            font-size: 1.5rem;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .edit-title input {
+            font-size: 1.5rem;
+            background: none;
+            border: none;
+            padding-left: 10px;
+        }
+
+        .edit-sidebar::placeholder {
+            color: #fff;
+            opacity: 1; /* Firefox */
+        }
+
+        .edit-title input:active {
+            background: none;
+            border: none;
+            color: #fff;
+        }
+
+        .edit-option {
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .edit-option i {
+            margin-right: 10px;
+            color: #fff;
+            font-size: 1.2rem;
+        }
+
+        .edit-option input {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .edit-actions {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+        }
+
+        .action-btn {
+            display: block;
+            color: #fff;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 1rem;
+            background-color: rgba(78, 78, 78, 0.545);
+        }
+
+        .action-btn:hover {
+            transition: 0.3s;
+            background-color: rgba(61, 175, 181, 0.562);
+        }
+
+        .close-edit-sidebar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 20px;
+            color: #333;
+        }
+
+
+        /* Goals hover effect CSS */
+        .goal-category ul li, .new-goal-modal, .edit-goal-sidebar button {
+            transition: all 0.3s ease-in-out;
+        }
+
+        .goal-category ul li:hover, .new-goal-modal button:hover, .edit-goal-sidebar button:hover {
+            transform: scale(1.05); /* Slight grow effect on hover */
+        }
+
+        /* Goals CSS */
+        .goals {
+            display: block;
+            flex: 1;
+            margin-right: 20px;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .goals h2 {
+            margin-bottom: 10px;
+        }
+
+        .goal-category {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+        }
+
+        .goal-category h3 {
+            color: rgba(51, 51, 51, 0.8);
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+
+        .goal-category ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .goal-category ul li {
+            background-color: rgba(51, 51, 51, 0.1);
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .goal-category ul li:hover {
+            background-color: rgba(51, 51, 51, 0.2);
+        }
+
+
+        /* Button to Add New Goal */
+        .new-goal-container {
+            text-align: left;
+            margin: 20px 0;
+        }
+
+        .new-goal-btn, .finish-goal-btn {
+            padding: 10px 20px;
+            background-color: rgba(78, 78, 78, 0.545);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .new-goal-btn:hover, .finish-goal-btn:hover {
+            background-color: rgba(61, 175, 181, 0.562);
+        }
+
+        /* Modal (Hidden by default) */
+        .new-goal-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(51, 51, 51, 0.6); 
+            backdrop-filter: blur(5px);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            width: 400px;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            display: flex;
+            flex-direction: column;
+            color: #fff;
+        }
+
+        .modal-content h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .modal-content input, .modal-content textarea, .modal-content select {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .modal-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: rgba(0, 128, 255, 0.7);
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+
+        .modal-btn:hover {
+            background-color: rgba(0, 128, 255, 1);
+        }
+
+        .cancel-btn {
+            background-color: rgba(255, 0, 0, 0.7);
+        }
+
+        .cancel-btn:hover {
+            background-color: rgba(255, 0, 0, 1);
+        }
+
+        /* Hidden Modal by Default */
+        .hidden {
+            display: none;
+        }
+
+        /* Goals Sidebar (initially hidden) */
+        .sidebar {
+            position: fixed;
+            top: 50px;
+            right: -350px;
+            width: 300px;
+            height: calc(100vh - 60px);
+            background: rgba(51, 51, 51, 0.6); /* Consolidated color */
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.2);
+            color: #fff;
+            transition: right 0.4s ease-in-out;
+            z-index: 999;
+            overflow: scroll;
+        }
+
+/* Show Sidebar */
+.sidebar.open {
+    right: 0;
+}
+
+/* Sidebar Heading */
+.sidebar h2 {
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+/* Sidebar Section */
+.sidebar-section {
+    margin-bottom: 15px;
+}
+
+.sidebar-section label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.sidebar-section input, .sidebar-section textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-section textarea {
+    height: 100px;
+}
+
+/* Set Steps Section */
+.sidebar-section ol {
+    margin-left: 20px;
+}
+
+.sidebar-section ol li {
+    margin-bottom: 5px;
+}
+
+.sidebar-btn {
+    padding: 10px 20px;
+    background-color: rgba(0, 128, 255, 0.7);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.sidebar-btn:hover {
+    background-color: rgba(0, 128, 255, 1);
+}
+
+.delete-btn {
+    background-color: rgba(255, 0, 0, 0.7);
+}
+
+.delete-btn:hover {
+    background-color: rgba(255, 0, 0, 1);
+}
+
+.sidebar-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.sidebar-step-buttons {
+    display: flex;
+    justify-content: space-between;
+}
+
+/* Hidden Sidebar */
+.hidden {
+    display: none;
+}
+
+
+
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .planner {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .tasks,
+            .goals {
+                margin-right: 0;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <ul><li><a href="javascript:window.history.back();">Back</a>
+            <div class="dropdown">
+                <a href="Home.html">Home</a>
+                <a href="About.html">About</a>
+                <a href="Profile.html">Profile</a>
+                <a href="Settings.html">Settings</a>
+            </div>
+        </li></ul>
+        <ul>
+            <li><a href="#tasks">Tasks</a></li>
+            <li><a href="#goals">Goals</a></li>
+        </ul>
+    </nav>
+    <h1 class="title"><a href="#">Planner</a></h1> 
+
+    <div class="planner">
+        <!-- Tasks Section --> 
+        <div class="tasks">
+            <div class="sub-container">
+                <h2 class="sub-title" id="#tasks">To Do</h2> <!-- Make sticky -->
+                <p class="date" id="current-date"></p>
+            </div>
+
+            <!-- Today Section -->
+            <div class="section-header" onclick="toggleTaskSection('today')">
+                <span><i class="fas fa-chevron-down" id="today-toggle"></i> Today</span>
+                <span><span class="mark-all" onclick="markAllAsDone('today')">Mark all as done</span></span>
+            </div>
+            <ul class="tasks today-tasks" id="today">
+                <li class="task-item">  
+                    <input type="checkbox" class="checkbox" onclick="toggleTaskCompletion(this, 'today')">
+                    <span class="task-label">Task Test</span>
+                </li>
+            </ul>
+            
+            <!-- "Upcoming" Section -->
+            <div class="section-header" onclick="toggleTaskSection('upcoming')">
+                <span><i class="fas fa-chevron-down" id="upcoming-toggle"></i> Upcoming</span>
+                <span><span class="mark-all" onclick="markAllAsDone('upcoming')">Mark all as done</span></span>
+            </div>
+            <ul class="tasks upcoming-tasks" id="upcoming">
+            </ul>
+            
+            <!-- "Done" Section -->
+            <div class="section-header" onclick="toggleTaskSection('done')">
+                <span><i class="fas fa-chevron-down" id="done-toggle"></i> Done</span>
+                <span><span class="clear-all" onclick="clearAllTasks()">Clear all</span></span>
+            </div>
+            <ul class="tasks done-tasks" id="done">
+            </ul>
+
+            <!-- Add Tasks -->
+            <div class="add-task-bar">
+                <i class="fa fa-plus add-icon" onclick="addTask()"></i>
+                <p style="visibility: hidden;">-</p>
+                <input type="text" id="taskInput" placeholder="Add a new task..." onkeydown="addTaskOnEnter(event)">
+            </div>
+
+            <!-- Edit Tasks -->
+            <div class="edit-sidebar" id="editTaskSidebar">
+                <div class="edit-title">
+                    <i class="fas fa-chevron-right" id="edit-close"></i>
+                    <input type="text" id="edit-task-name" placeholder="Edit Task Name">
+                </div>
+        
+                <div class="edit-option">
+                    <i class="fas fa-calendar-alt"></i>
+                    <input type="date" id="edit-task-date" placeholder="Edit Due Date">
+                </div>
+        
+                <div class="edit-option">
+                    <i class="fas fa-bell"></i>
+                    <input type="datetime-local" id="edit-task-reminder" placeholder="Add Reminder">
+                </div>
+        
+                <div class="edit-option">
+                    <i class="fas fa-sticky-note"></i>
+                    <input type="text" id="edit-task-note" placeholder="Add Note">
+                </div>
+        
+                <div class="edit-actions">
+                    <span id="mark-done" class="action-btn" onclick="toggleTaskCompletion()">Mark as Done / Not Done</span>
+                    <span id="save-task" class="action-btn" onclick="saveTask()">Save</span>
+                    <span id="delete-task" class="action-btn" onclick="deleteTask()">Delete</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Goals Section -->
+        <div class="goals">
+            
+            <div class="sub-container">
+                <h2 class="sub-title" id="goals">Goals</h2> <!-- Make sticky -->
+                <p class="date" id="current-date2"></p>
+            </div>
+
+            <!-- Add New Goal Button -->
+            <div class="new-goal-container">
+                <button id="addNewGoalBtn" class="new-goal-btn">New Goal</button>
+                <button id="finishNewGoalBtn" class="finish-goal-btn">Finished Goal</button>
+            </div>
+
+            <!-- New Goal Pop-up Window -->
+            <div id="newGoalModal" class="new-goal-modal hidden">
+                <div class="modal-content">
+                    <h2>Set New Goal</h2>
+                    <input type="text" id="goalTitle" placeholder="Enter Goal here...">
+
+                    <!-- Set Due Date -->
+                    <label for="dueDate">Set Due Date:</label>
+                    <input type="date" id="dueDate">
+
+                    <!-- Set Reminder -->
+                    <label for="reminder">Set Reminder:</label>
+                    <input type="datetime-local" id="reminder">
+
+                    <!-- Set Repeat -->
+                    <label for="repeat">Set Repeat for Reminder:</label>
+                    <select id="repeat">
+                        <option value="none">None</option>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                    </select>
+
+                     <!-- Add Note -->
+                    <textarea id="note" placeholder="Add Note..."></textarea>
+
+                    <!-- Buttons -->
+                    <div class="modal-buttons">
+                        <button id="saveGoalBtn" class="modal-btn">Save</button>
+                        <button id="cancelGoalBtn" class="modal-btn cancel-btn">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="goal-category">
+                <h3>Weekly Goals</h3>
+                <ul>
+                    <li>Complete Stride UI</li>
+                    <li>Go to the Rec 3 times</li>
+                </ul>
+            </div>
+            <div class="goal-category">
+                <h3>Monthly Goals</h3>
+                <ul>
+                    <li>Finish Stride Backend</li>
+                    <li>Finish a book</li>
+                </ul>
+            </div>
+            <div class="goal-category">
+                <h3>Yearly Goals</h3>
+                <ul>
+                    <li>Learn a new skill</li>
+                    <li>Travel to a new place</li>
+                </ul>
+            </div>
+            <div class="goal-category">
+                <h3>Lifetime Goals</h3>
+                <ul>
+                    <li>Build a business</li>
+                    <li>Make SAO</li>
+                </ul>
+            </div>
+        </div>
+
+
+        <!-- Edit Goal Sidebar -->
+        <div id="editGoalSidebar" class="sidebar hidden">
+            <div class="edit-title">
+                <i class="fas fa-chevron-right" id="edit-close"></i>
+                <input type="text" id="edit-goal-name" placeholder="Edit Goal Name">
+            </div>
+
+            <!-- Mark as Done / Not Done -->
+            <div class="sidebar-section">
+                <span id="mark-done" class="action-btn" onclick="toggleGoalCompletion()">Mark as Done / Not Done</span>
+            </div>
+
+            <!-- Set Reminder -->
+            <div class="sidebar-section">
+                <label for="editReminder">Set Reminder</label>
+                <input type="datetime-local" id="editReminder">
+            </div>
+
+            <!-- Change Due Date -->
+            <div class="sidebar-section">
+                <label for="editDueDate">Change Due Date</label>
+                <input type="date" id="editDueDate">
+            </div>
+
+            <!-- Set Steps -->
+            <div class="sidebar-section">
+                <h3>Set Steps</h3>
+                
+                <!--Make it similar to task section-->
+                <ol id="stepsList">
+                    <li>Add steps to complete goal</li>
+                    <li>Usually next steps are hidden</li>
+                    <li>...</li>
+                    <li>Like the one above</li>
+                </ol>
+
+                <div class="sidebar-step-buttons">
+                    <button id="addStepBtn" class="action-btn">Add Step</button>
+                    <button id="generateStepBtn" class="action-btn">Generate Steps</button>    
+                </div>
+            </div>
+
+            <!-- Add Note -->
+            <div class="sidebar-section">
+                <textarea id="sidebarNote" placeholder="Add Note..."></textarea>
+            </div>
+
+    <!-- Sidebar Buttons -->
+    <div class="sidebar-buttons">
+        <button id="saveGoalSidebarBtn" class="sidebar-btn">Save</button>
+        <button id="deleteGoalBtn" class="sidebar-btn delete-btn">Delete</button>
+    </div>
+</div>
+
+
+    
+    <!-- JavaScript for Task Management (LATER use database with convex since array will reset upon refresh)-->
+    <script>
+        // Show current selected task
+        let currentlySelectedTask = null;
+        function selectTask(taskElement) {
+            if (currentlySelectedTask) {
+                currentlySelectedTask.classList.remove('highlight');
+            }
+            taskElement.classList.add('highlight');
+            currentlySelectedTask = taskElement;
+            showTaskDetails(taskElement);
+        }
+
+        // Set & Display Date
+        const currentDateElem = document.getElementById('current-date');
+        function updateCurrentDate() {
+            const today = new Date();
+            const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
+            currentDateElem.textContent = today.toLocaleDateString(undefined, options);
+        }
+        const currentDateElem2 = document.getElementById('current-date2');
+        function displayGoalDates() {
+            const today = new Date();
+            const options = { year: 'numeric', month: 'numeric', day: 'numeric' };
+            currentDateElem2.textContent = today.toLocaleDateString(undefined, options);
+        }
+        updateCurrentDate();
+        displayGoalDates();
+
+        // Toggle Sections
+        const todayTasks = document.getElementById('today');
+        const upcomingTasks = document.getElementById('upcoming');
+        const doneTasks = document.getElementById('done');
+        const todayToggle = document.getElementById('today-toggle');
+        const upcomingToggle = document.getElementById('upcoming-toggle');
+        const doneToggle = document.getElementById('done-toggle');
+        todayToggle.addEventListener('click', () => toggleTaskSection(todayTasks, todayToggle));
+        upcomingToggle.addEventListener('click', () => toggleTaskSection(upcomingTasks, upcomingToggle));
+        doneToggle.addEventListener('click', () => toggleTaskSection(doneTasks, doneToggle));
+
+        function toggleTaskSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            const icon = document.getElementById(sectionId + '-toggle');
+
+            if (section.style.display === 'none' || section.style.display === '') {
+                section.style.display = 'contents';
+                icon.classList.remove('fa-chevron-right');
+                icon.classList.add('fa-chevron-down');
+            } else {
+                section.style.display = 'none';
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-right');
+            }
+        }
+
+        // Toggle Mark
+        function toggleTaskCompletion(checkbox, sectionId) {
+            const taskItem = checkbox.closest('.task-item');
+            if (checkbox.checked) {
+                markAsDone(taskItem);
+            } else {
+                markNotDone(taskItem, sectionId);
+            }
+        }
+
+        // Undo mark (wont work when date comes in)
+        function markNotDone(taskItem, previousSectionId) {
+            const previousSection = document.getElementById(previousSectionId);
+            previousSection.appendChild(taskItem);
+        }
+
+        // Mark as Done
+        function markAsDone(taskItem) {
+            doneTasks.appendChild(taskItem);
+        }
+
+        // Mark All as Done
+        const tasks = document.querySelectorAll('.task-item');
+        function markAllAsDone(sectionId) {
+            const section = document.getElementById(sectionId);
+            tasks.forEach(tasks => {
+                tasks.querySelector('.checkbox').checked = true;
+                markAsDone(tasks);
+            });
+        }
+
+        // Delete All Done Tasks
+        function clearAllTasks() {
+            doneTasks.innerHTML = '';
+        }
+
+        // Enter key trigger
+        function addTaskOnEnter(event) {
+            if (event.key === 'Enter') {
+                addTask();
+            }
+        }
+
+        // Add Task
+        function addTask() {
+            const taskInput = document.getElementById("taskInput");
+            const taskText = taskInput.value.trim();
+
+            if (taskText  !== "") {
+                const taskList = document.getElementById("today"); // Assuming tasks are added under "Today"
+                const newTask = document.createElement("li");
+                newTask.classList.add("task-item");
+
+                newTask.innerHTML = `
+                    <input type="checkbox" class="checkbox" onclick="toggleTaskCompletion(this, 'today')">
+                    <span class="task-label">${taskText}</span>
+                `;
+
+                newTask.addEventListener('click', () => {
+                    selectTask(newTask);
+                    editTaskSidebar.classList.add('open');
+                    showTaskDetails(newTask, sectionId, index); // not done until store task done
+                });
+
+                document.querySelectorAll(".checkbox").forEach(checkbox => {
+                    checkbox.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                    });
+                });
+
+                taskList.appendChild(newTask);
+                taskInput.value = "";
+            }
+        }
+
+        // Store info on edit
+        function storeTaskDetails(task, sectionId, index) {
+            // should this be in add task instead?
+        }
+
+
+
+        // Display info on edit  (tbd)
+        function showTaskDetails(taskElement) {
+            // Assuming tasks are stored with data attributes or in an array
+            const taskId = taskElement.getAttribute('data-task-id');
+            const task = tasks.find(task => task.id === taskId);
+
+            // Populate sidebar fields with task info
+            document.getElementById('taskNameInput').value = task.name;
+            document.getElementById('dueDateInput').value = task.dueDate;
+            document.getElementById('reminderInput').value = task.reminder;
+            document.getElementById('taskNotesInput').value = task.notes;
+
+            // Store the current task being edited
+            currentlySelectedTask = task;
+        }
+
+        function saveTaskChanges() {
+            if (currentlySelectedTask) {
+                // Update task info with the values from the sidebar inputs
+                currentlySelectedTask.name = document.getElementById('taskNameInput').value;
+                currentlySelectedTask.dueDate = document.getElementById('dueDateInput').value;
+                currentlySelectedTask.reminder = document.getElementById('reminderInput').value;
+                currentlySelectedTask.notes = document.getElementById('taskNotesInput').value;
+
+                // Update the task element to reflect changes (e.g., update the task name displayed)
+                document.querySelector(`[data-task-id="${currentlySelectedTask.id}"] .task-name`).textContent = currentlySelectedTask.name;
+
+                // Optionally, save changes to the backend or localStorage if applicable
+            }
+        
+        
+        }
+
+        // Display info on edit 
+        const markAsDoneButton = document.getElementById('mark-done');
+        const deleteButton = document.getElementById('delete-task');
+        const saveButton = document.getElementById('save-task');
+        function showTaskDetails(task, sectionId, index) {
+            currentlyEditingTask = { task, sectionId, index };
+            document.getElementById('edit-task-name').value = task.name;
+            document.getElementById('edit-task-date').value = task.dueDate || '';
+            document.getElementById('edit-task-reminder').value = task.reminder || '';
+            document.getElementById('edit-task-note').value = task.notes || '';
+
+            document.getElementById('editTaskSidebar').style.display = 'block';
+        }
+
+        // Show Edit Task
+        const editTaskSidebar = document.getElementById('editTaskSidebar');
+        tasks.forEach(task => {
+            task.addEventListener('click', () => {
+                selectTask(task);
+                editTaskSidebar.classList.add('open');
+                showTaskDetails(newTask, sectionId, index); // not done until store task done
+            });
+        });
+
+        // Checkbox doesn't open Edit
+        document.querySelectorAll(".checkbox").forEach(checkbox => {
+            checkbox.addEventListener("click", (e) => {
+                e.stopPropagation();
+            });
+        });
+
+        // Exit Edit button 
+        const closeButton = document.getElementById('edit-close');
+        closeButton.addEventListener('click', () => {
+            editTaskSidebar.classList.remove('open');
+        });
+
+
+
+        // Get the goal modal and buttons
+const newGoalModal = document.getElementById('newGoalModal');
+const addNewGoalBtn = document.getElementById('addNewGoalBtn');
+const cancelGoalBtn = document.getElementById('cancelGoalBtn');
+
+// Open the modal when clicking the "New Goal" button
+addNewGoalBtn.addEventListener('click', () => {
+    newGoalModal.classList.remove('hidden');
+});
+
+// Close the modal when clicking the "Cancel" button
+cancelGoalBtn.addEventListener('click', () => {
+    newGoalModal.classList.add('hidden');
+});
+
+// Close the modal when clicking outside the modal content
+window.addEventListener('click', (event) => {
+    if (event.target == newGoalModal) {
+        newGoalModal.classList.add('hidden');
+    }
+});
+
+
+
+// Get the sidebar and buttons
+const editGoalSidebar = document.getElementById('editGoalSidebar');
+const saveGoalSidebarBtn = document.getElementById('saveGoalSidebarBtn');
+const deleteGoalBtn = document.getElementById('deleteGoalBtn');
+
+// Function to open the sidebar
+function openSidebar() {
+    editGoalSidebar.classList.remove('hidden');
+    editGoalSidebar.classList.add('open');
+}
+
+// Function to close the sidebar
+function closeSidebar() {
+    editGoalSidebar.classList.remove('open');
+    editGoalSidebar.classList.add('hidden');
+}
+
+// Example trigger to open the sidebar (you can replace this with an actual click on a goal)
+document.querySelectorAll('.goal-category').forEach(goalItem => {
+    goalItem.addEventListener('click', () => {
+        openSidebar();
+    });
+});
+
+// Example Save and Delete buttons functionality (add your own save/delete logic)
+saveGoalSidebarBtn.addEventListener('click', () => {
+    console.log('Goal saved!');
+    closeSidebar(); // Close the sidebar after saving
+});
+
+deleteGoalBtn.addEventListener('click', () => {
+    console.log('Goal deleted!');
+    closeSidebar(); // Close the sidebar after deleting
+});
+
+    </script>
+</body>
+
+</html>

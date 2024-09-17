@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Stride</title>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100;400&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Raleway', sans-serif;
+            background: linear-gradient(to right, #d5f0c6, #b7dffb);
+            color: #333;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            scroll-behavior: smooth;
+            overflow: visible;
+        }
+
+        .navbar { /* Navigation Bar */
+            position: sticky; /* Make the navbar fixed at the top (or should it be sticky) */ 
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000; /* Ensure it stays above other content */
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            padding: 13px 0px 13px 0px;
+        }
+
+        .navbar ul { /* Navbar item holder */
+            list-style-type: none;
+            display: flex;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar ul li { /* Navbar item */
+            margin: 0 15px;
+            position: relative;
+        }
+
+        .navbar ul li a { /* Navbar Animation Fuil Control (all) */
+            text-decoration: none;
+            color: #333;
+            font-size: 1.2em;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .navbar ul li a::after { /* Navbar Line Animation > Original Position */
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: #888;
+            visibility: hidden;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .navbar ul li a:hover::after { /* Line Animation */
+            visibility: visible;
+            transform: scaleX(1);
+        }
+
+        .navbar ul li .dropdown { /* Dropdown Menu */
+            visibility: hidden;
+            position: absolute;
+            top: 105%;
+            left: 0;
+            background-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            min-width: 150px;
+            z-index: 1000;
+            border-radius: 5px;
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            transform: translateY(-10px); /* Dropdown Animation > Original Position */
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .navbar ul li:hover .dropdown { /* Slide Down */
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+            backdrop-filter: blur(10px);
+        }
+
+        .dropdown a { /* Dropdown Item Animation > Original Position */
+            color: #333;
+            padding: 10px 20px;
+            display: block;
+            text-decoration: none;
+            border-radius: 5px;
+            opacity: 0;
+            transform: translateX(0px); /* original position */
+        }
+
+        .navbar ul li:hover .dropdown a { /* Item Slide to right */
+            opacity: 1;
+            transform: translateX(10); 
+            transition-delay: 0.1s;
+        }
+
+        .dropdown a:hover { /* Line Animation */
+            background-color: rgba(51, 51, 51, 0.2);
+            transform: translateX(10px);
+            transition-delay: 0.1s;
+            color: #fff;
+        }
+
+        /* ---------------------------------------------------------------Image SLider Section--------------------------------------------------------------- */
+        /* Changes to make : active + header & info transitions, navbar dropdown blur */
+        * {
+            margin: 0px;
+            padding: 0px;
+            box-sizing: border-box;
+        }
+
+        .slider-container{
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.7s ease;
+        }
+
+        .slider-images{
+            display: flex;
+            align-items: center;
+            gap: 21px;
+        }
+
+        .slider-images img{
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+        
+        .slider-img{
+            width: 110px;
+            height: 480px;
+            border-radius: 6px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.7s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: all 0.5s ease;
+        }
+
+        .slider-images .slider-img:first-child, .slider-images .slider-img:last-child, .last {
+            height: 480px;
+        }
+
+        .slider-images .slider-img:nth-child(2), .middle {
+            height: 560px;
+        }
+
+        h1{
+            font-size: 30px;
+            font-weight: 700;
+            text-align: center;
+            text-transform: uppercase;
+            color: #fff;
+            position: absolute;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            transition: all 0.7s ease;
+        }
+
+        .details{
+            position: absolute;
+            bottom: 43px;
+            left: 43px;
+        }
+
+        .details h2{
+            font-size: 28px;
+            font-weight: 700;
+            text-align: left;
+            line-height: 44px;
+            text-align: left;
+            color: #fff;
+            text-transform: uppercase;
+            transition: 0.7s ease;
+            display: none;
+        }
+
+        .details p{
+            font-size: 20px;
+            font-weight: 700;
+            text-align: left;
+            line-height: 33px;
+            text-align: left;
+            color: #fff;
+            text-transform: uppercase;
+            transition: 0.7s ease;
+            display: none;
+        }
+
+        .slider-img.active{
+            width: 680px !important;
+            height: 660px !important;
+            transition: width 0.7s ease, height 0.7s ease;
+        }
+        
+        .slider-img.active h1{
+            display: none;
+        }
+
+        .slider-img.active .details p, .slider-img.active .details h2{
+            display: block;
+        }
+
+        .slider-images .slide1, 
+        .slider-images .slide2, 
+        .slider-images .slide3 { /* Img Slider(s) Original Position */
+            opacity: 0;
+            transform: translateY(-50px); /* Default transform for all */
+            transition: transform 1s ease, opacity 1s ease;
+        }
+
+        .slider-images .slide1 { /* Slide in from the top */
+            animation: slideInFromTop 1s ease forwards;
+            animation-delay: 0.1s; /* Adjust delay for smoother sequence */
+        }
+
+        .slider-images .slide2 { 
+            animation: slideInFromTop 1s ease forwards;
+            animation-delay: 0.2s; 
+        }
+
+        .slider-images .slide3 { 
+            animation: slideInFromTop 1s ease forwards;
+            animation-delay: 0.4s; 
+        }
+
+        @keyframes slideInFromTop { /* Keyframes for top animations */
+            0% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) { /* If smol Slider */
+            .slider-img {
+                width: 80px;
+                height: 400px;
+            }
+
+            .slider-img.active {
+                width: 400px !important;
+                height: 500px !important;
+            }
+
+            .details h2 {
+                font-size: 20px;
+            }
+
+            .details p {
+                font-size: 14px;
+            }
+
+            .slider-images .slider-img:first-child, .slider-images .slider-img:last-child, .last {
+                height: 340px;
+            }
+
+            .slider-images .slider-img:nth-child(2), .middle {
+                height: 400px;
+            }
+        }
+        /* ------------------------------------------------------------------------------------------------------------------------------ */
+
+        /* Contact Section */
+        .contact-container {
+            width: 100%;
+            height: 100vh; /* Full-screen height */
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .contact-container form {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .contact-container input,
+        .contact-container textarea {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            background-color: #eee;
+            font-size: 1.1em;
+        }
+
+        .contact-container input[type="submit"] {
+            background: #555;
+            color: white;
+            cursor: pointer;
+            width: 50%;
+            transition: background 0.3s;
+        }
+
+        .contact-container input[type="submit"]:hover {
+            background: #444;
+        }
+
+        .contact-details {
+            margin-top: 20px;
+            font-size: 1.2em;
+            text-align: center;
+        }
+
+        .contact-details a {
+            color: #333;
+            text-decoration: underline;
+        }
+
+        /* Responsive Contact Section */
+        @media (max-width: 768px) {
+            .contact-container form {
+                width: 80%;
+            }
+
+            .contact-container input,
+            .contact-container textarea {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar Section -->
+    <nav class="navbar">
+        <ul><li><a href="javascript:window.history.back();">Back</a>
+            <div class="dropdown">
+                <a href="Home.html">Home</a>
+                <a href="Planner.html">Planner</a>
+                <a href="Profile.html">Profile</a>
+                <a href="Settings.html">Settings</a>
+            </div>
+        </li></ul>
+        <ul>
+            <li><a href="#aboutform">Info</a></li>
+            <li><a href="#contactform">Contact</a></li>
+        </ul>
+    </nav>
+
+    <!-- About etc Section -->
+    <div id="aboutform">
+        <section class="slider-container">
+            <div class="slider-images">
+                <div class="slider-img slide1">
+                    <img src="2.jpg"/>
+                    <h1>How to Use</h1>
+                    <div class="details">
+                        <h2>How to Use</h2>
+                        <p>
+                            Users can customize how they want to use stride and how it should look for their best efficiency.
+                            Right now, you are in the "about" section. 
+                            You can visit the settings to customize the format of your stride profile, what is tracked, and much more.
+                            To view a complete tutorial, click <a href="http://youtube.com">here</a>.
+                        </p>
+                    </div>
+                </div>
+                <div class="slider-img slide2 active">
+                    <img src="1.jpg" />
+                    <h1>About Us</h1>
+                    <div class="details">
+                        <h2>About Us</h2>
+                        <p>
+                            STRIDE, “The All in One Profile to your Life,” serves as the single profile to document and guide you through your journey–
+                            whether it be a physical development, a side hustle, or just life in general.
+                        </p>
+                    </div>
+                </div>
+                <div class="slider-img slide3">
+                    <img src="3.jpg" />
+                    <h1>Features</h1>
+                    <div class="details">
+                        <h2>Features</h2>
+                        <p>Tracking, Planning, Goals, To Do Lists, Customization, and much more.</p>
+                    </div>
+                </div>
+            </div>
+          </section>
+    </div>
+
+    <!-- Contact Form -->
+    <div class="contact-container" id="contactform">
+        <h2>Contact Us</h2>
+        <form>
+            <input type="text" placeholder="Name">
+            <input type="text" placeholder="ID / email"> <!--Stride ID is later in profile but it basically makes it so any1 can sign up & we wont use ur info-->
+            <textarea placeholder="Message"></textarea>
+            <input type="submit" value="Send">
+        </form>
+        <div class="contact-details">
+            <p>Email: <a href="mailto:email@gmail.com">email@gmail.com</a></p>
+            <p>Phone: <a href="tel:+1234567890">+1 234 567 890</a></p>
+        </div>
+    </div>
+
+    <script src="js/jQuery.js"></script>
+    <script> // Makes selected item active
+      jQuery(document).ready(function ($) {
+        $(".slider-img").on("click", function () {
+          $(".slider-img").removeClass("active middle last"); // cleanse
+          $(this).addClass("active"); // To "open" a part
+
+          if ($(".slide1").hasClass("active")) { // To make it look ascending/descending sizes
+            $(".slide2").addClass("middle");
+            $(".slide3").addClass("last");
+          } else if ($(".slide3") = hasClass("active")) {
+            $(".slide2").addClass("middle");
+            $(".slide1").addClass("last");
+          }
+        });
+      });
+    </script>
+
+    <!-- color whee
+    <script>
+        document.addEventListener('mousemove', (event) => {
+            const { clientX, clientY } = event;
+            const { innerWidth, innerHeight } = window;
+
+        // Calculate percentage positions based on cursor location
+            const xPercent = (clientX / innerWidth) * 100;
+            const yPercent = (clientY / innerHeight) * 100;
+
+        // Update the background gradient based on the cursor position
+            document.body.style.background = `linear-gradient(${xPercent}deg, #d5f0c6, #b7dffb)`;
+        });
+    </script>
+    -->
+</body>
+
+</html>
